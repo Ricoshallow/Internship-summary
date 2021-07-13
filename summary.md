@@ -17,7 +17,13 @@
     ```css
     background-image: linear-gradient(to right, #E94E65, #15A892 20%, #A89215 80%, #1574A8);
     ```
+###  **表格内容自动换行**
 
+```css
+    /**jsgrid表格内容自动换行 */
+    /* 普通表格设置td */
+    .jsgrid-cell { white-space: normal !important; height:auto; } 
+```
 <br>
 <br>
 
@@ -60,6 +66,50 @@
     - 会产生很多页面，不容易管理
     - 多框架的页面会增加服务器的http请求
     - 浏览器的后退按钮无效（只能针对实现当前光标所在页面的前进与后退，无法实现frameset整个页面的前进与后退）
+
+### HTML自定义标签
+- 创建
+
+    在标签里面 以” data- ”为前缀自定义属性
+    ```javascript
+    // 将改行数据对应的节点保存到自定义属性中
+     {
+        headerTemplate: function () {
+            return "<a href='###' onclick='swapCheck()' >Select All</a>"
+        },
+        itemTemplate: function (_, item) {
+            return $("<input>").attr("type", "checkbox").attr("name", "chkSelect").attr("id", "chkSelect").attr("value", item.jobId).attr("data-node",item.node);
+        },
+        align: "center",
+        width: 50
+    }
+    ```
+- 获取
+
+    自定义属性对象Dataset
+
+    ```javascript
+    // 调用函数删除对应节点上的数据
+    $('#btn_terminate').bind('click',function(){
+        console.log($("#chkSelect:checked").length);
+        // if no checked users
+        if ($("#chkSelect:checked").length == 0){
+            alert("please choose the job you want to terminate")
+        }
+        $.each($("#chkSelect:checked"), function (i, e) {
+            // console.log('cancel...');
+            
+            // console.log(e.id,e.name,e.value,e.dataset.node);
+            
+            ctlApi.cancelJob(e.dataset.node, e.value, function (re) {
+                // console.log('test...');
+                // location.reload(true);
+                bindGrid();
+                
+            });
+        });
+    })
+    ```
 
 <br>
 <br>
