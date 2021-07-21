@@ -1,4 +1,4 @@
-## CSS
+# CSS
 ###  **渐变背景**
 - 线性渐变
 
@@ -27,7 +27,7 @@
 <br>
 <br>
 
-## HTML
+# HTML
 
 ### **ifram**
 ```<ifram></ifram>```标签规定一个内联框架。一个内联框架被用来在当前 HTML 文档中嵌入另一个文档。
@@ -111,12 +111,92 @@
     })
     ```
 
+### Diolag 标签
+- show()
+- showModal()
+    ```javascript
+    // 当该方法用于显示对话窗口时，用户不可以与页面的其他元素进行交互
+    document.getElementById("myDialog").showModal();
+    ```
+
 <br>
 <br>
 
-## Plug-in and Frame
+# Plug-in and Frame
 
 ### **CodeMirror**
 
 
 ### **H-ui**
+
+# Jquery
+### jquery tmpl
+
+hmtl:
+```html
+    <script id="userTemplate" type="text/x-jquery-tmpl">
+        <li class="list-group-item"><input id="chkUser" type="checkbox" {{if selected==1}} checked {{/if}}value="${userId}"> ${userId}</li>
+    </script>
+```
+
+js:
+```javascript
+    ctlApi.getExistsUserByGroupId(groupId, function (re) {
+        // console.log("re", re);
+        $("#userTemplate").tmpl(re).appendTo("#memberGrid");
+    });
+```
+### jquery tab栏切换
+html: 
+```html
+<body>
+    <div class="wrapper">
+        <ul class="tab">
+            <li class="tab-item active">标题1♥</li>
+            <li class="tab-item">标题2♥</li>
+            <li class="tab-item">标题3♥</li>
+            <li class="tab-item">标题4♥</li>
+        </ul>
+        <div class="products">
+            <div class="main selected">
+                <span class="a">1</span>
+            </div>
+            <div class="main">
+                <span class="a">2</span>
+            </div>
+            <div class="main">
+                <span class="a">3</span>
+            </div>
+            <div class="main">
+                <span class="a">4</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+```
+
+js: 
+```javascript
+    $(function () {
+            $(".wrapper .tab-item").click(function () {
+                $(this).addClass("active").siblings().removeClass("active");
+                $(".products .main").eq($(this).index()).show().siblings().hide();
+            })
+        })
+
+```
+
+### jquery 全局搜索表格内容
+js:
+```javascript
+    
+$(function () {
+    $("#searchbox").keyup(function () {
+        $("table tbody tr").hide()
+        .filter(":contains('"+($(this).val())+"')").show();//filter和contains共同来实现了这个功能。
+    })
+});
+  
+```
