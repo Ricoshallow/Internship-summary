@@ -192,11 +192,79 @@ js:
 js:
 ```javascript
     
-$(function () {
-    $("#searchbox").keyup(function () {
-        $("table tbody tr").hide()
-        .filter(":contains('"+($(this).val())+"')").show();//filter和contains共同来实现了这个功能。
-    })
-});
+    $(function () {
+        $("#searchbox").keyup(function () {
+            $("table tbody tr").hide()
+            .filter(":contains('"+($(this).val())+"')").show();//filter和contains共同来实现了这个功能。
+        })
+    });
   
+```
+
+### jquery 添加删除元素解决对话框留存问题
+
+**问题描述**：在利用对话框增加修改函数的业务中，点击按钮弹出的对话框在完成处理逻辑以后，对话框不会被清除和销毁，当我们再次点击按钮弹出对话框时，实际上会有两个对话框。这会导致提交按钮的重复提交（提交按钮绑定了同一个提交函数），造成混乱现象。
+
+**解决方法**：
+1. 在每次逻辑处理完后重载页面，页面被重置就能恢复到原本状态，但是频繁重载页面对用户不太友好。
+2. 动态添加对话框，每次点击按钮时先清除上一个对话框，再进行当前逻辑处理。
+
+```js
+
+    var updatedialog = ` 
+<dialog id="updateFuncViewDialog">
+    <form method="dialog">
+      <p>
+          <label>Update function in DolphinDB Function View:</label>
+        <div id="cm_container" class="panel panel-default" style="margin-bottom: 10px;min-height:150px;max-height:255px; overflow-y:auto">
+            <textarea id="updateFuncView" cols="5" style="width:100%;"></textarea>
+        </div>
+          
+      
+    </p>
+      <menu  class="text-center" style="padding-inline-start: 0px;">
+        <button class="btn btn-sm btn-info" id="confirmUpdateBtn" value="default">Confirm</button>
+        <button class="btn btn-sm btn-light" value="cancel">Cancel</button>
+      </menu>
+    </form>
+</dialog>`
+
+var btnUpdateFunctionView = function (funcName) {
+    //移除元素
+    $('body').remove("#updateFuncViewDialog")
+    // prepend() - 在被选元素的开头插入内容
+    $('body').prepend(updatedialog)
+    console.log(funcName);
+    updateFuncEditor = codeMirrorEditor($("#updateFuncView")[0], 900, 200);
+    $("#updateFuncViewDialog")[0].showModal();
+    for (var i = 0; i < allFunctionViews.length; i++) {
+        var currFuncName = allFunctionViews[i]["name"];
+        if (currFuncName === funcName) {
+            updateFuncEditor.setValue(allFunctionViews[i]["body"]);
+        }
+    }
+
+    $("#confirmUpdateBtn").bind("click", function (e) {
+        console.log(e);
+        e.stopPropagation()
+        var updatedInput = updateFuncEditor.getValue();
+        // console.log(updatedInput);
+        var i = updatedInput.indexOf("def");
+        var j = updatedInput.indexOf("(");
+        if (i === -1 || j === -1) {
+            alert("Please provide a valid function definition");
+            return;
+        }
+        // new function name
+        var newFuncName = updatedInput.substring(i + 3, j).trim();
+
+        // drop and then add
+        nodeApi.dropFunctionView(funcName);
+        nodeApi.runSync(updatedInput);
+        console.log(updatedInput);
+        nodeApi.addFunctionView(newFuncName);
+        getAllFuncViews();
+
+    });
+}
 ```
