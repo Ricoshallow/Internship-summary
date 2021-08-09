@@ -37,12 +37,12 @@
     <iframe src="demo.html" height="300" width="500" name="demo" scrolling="auto" sandbox="allow-same-origin"></iframe>
     ```
 
-    - src iframe页面地址，有同域跨域之分
-    - height iframe高度
-    - width iframe宽度
-    - name iframe命名，可通过window.frames[xxx]被调用
-    - scrolling iframe滚动模式
-    - sandbox html5新特性，用于限制iframe的功能
+    - src : iframe页面地址，有同域跨域之分
+    - height : iframe高度
+    - width : iframe宽度
+    - name : iframe命名，可通过window.frames[xxx]被调用
+    - scrolling : iframe滚动模式
+    - sandbox : html5新特性，用于限制iframe的功能
 
 2. 使用
 
@@ -66,6 +66,156 @@
     - 会产生很多页面，不容易管理
     - 多框架的页面会增加服务器的http请求
     - 浏览器的后退按钮无效（只能针对实现当前光标所在页面的前进与后退，无法实现frameset整个页面的前进与后退）
+
+4. iframe父子页面间通信
+
+    - 父页面调用子iframe页面
+
+        I. 通过iframe的ID获取子页面的dom，然后通过内置属性contentWindow取得子窗口的window对象
+
+        ```javascript
+        document.getElementById('iframeId').contentWindow  //相应子页面的window对象
+        ```
+
+        II. 通过iframe的name直接获取子窗口的window对象
+
+        ```javascript
+        iframeName.window  //相应子页面的window对象
+        ```
+
+
+    - 子iframe页面调用父页面
+
+        通过parent或top对象获取父页面的window对象
+
+        ```javascript
+        parent.window  //父页面的window对象
+        ```
+
+    - 页面内兄弟iframe页面之间相互调用
+
+        结合父子页面间通信方法，父页面充当桥梁。在子页面中获取父页面（parent）的window元素，然后再根据兄弟iframe的name或id获取兄弟页面的window对象
+
+        ```javascript
+        let parentwindow =  parent.window  //父页面的window对象
+        let broIframe = parentwindow.document.getElementById('broIframeId').contentWindow // 兄弟页面的window对象
+        ```
+
+5. iframe跨域通信
+    
+    - ```window.name```
+
+        原理：
+
+        I. ```window.name```可以设置当前窗口的名字，这个值在不同页面加载后依然存在，并且可以支持非常长的数据（2MB）
+
+        II. 同级iframe,在不同域的情况下也可以访问```window.name```
+
+        III. 同域父子页面可以相互通信（见4）
+
+        实现：
+
+        一个主页面 ```main.html```，两个iframe，其中一个与主页面同域 ```proxy.html```（充当代理），另一个用来跨域 ```cross.html```（请求跨域资源）
+
+        **main.html**
+
+        ```html
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>main.html(http://localhost:8080)</title>
+        </head>
+        <body>
+            <script>
+                let data = '';
+                const ifr = document.createElement('iframe');
+                // 跨域请求
+                ifr.src = "http://localhost:8081/cross.html";
+                ifr.style.display = 'none';
+                document.body.appendChild(ifr);
+
+                //  监听iframe的onload事件
+                ifr.onload = function() {
+                    ifr.onload = function() {
+                        // 拿到跨域数据 
+                        data = ifr.contentWindow.name;
+                        console.log('recieve data:', data);
+                    }
+                    ifr.src = "http://localhost:8080/proxy.html";
+                }
+                // 销毁iframe释放内存
+                document.body.removeChild(ifr)
+            </script>
+        </body>
+        </html>
+        ```
+
+        **cross.html**
+
+        ```html
+        <script>
+            window.name = "some data"
+        </script>
+
+        ```
+
+    - ```postMessage```
+
+        postMessage 是 HTML5 新增加的一项功能，跨文档消息传输(Cross Document Messaging)
+
+        原理：
+
+        I. 使用iframe的postMessage方法可以向非同源文件发送消息
+
+        II. 监听message事件可以获得非同源文件发来的消息
+
+        实现： 
+
+        main.html
+
+        ```html
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>a.html</title>
+        </head>
+        <body>
+            <iframe src="http://localhost:8081/cross.html" style='display: none;'></iframe>
+            <script>
+            window.onload = function() {
+                let targetOrigin = 'http://localhost:8081';
+            //想要操作当前iframe的时候，就像该ifranme中postMessage()一个东西。
+                window.frames[0].postMessage('我要给你发消息了!', targetOrigin);
+                //*表示任何域都可以监听。
+            }
+            //当我监听到message事件的时候，我就知道有人向我发送数据了，我获得了数据就可以做对应的事情。内部对消息做实现
+            window.addEventListener('message', function(e) {
+                console.log('main.html 接收到的消息:', e.data);
+            });
+            </script>
+        </body>
+        </html>
+
+        ```
+
+        cross.html
+
+        ```html
+        <script> 
+            window.addEventListener('message', function(e) { 
+                if(e.source != window.parent) { 
+                    return; 
+                } 
+                let data = e.data;
+                console.log('cross.html 接收到的消息:', data); 
+                parent.postMessage('我已经接收到消息了!', e.origin); 
+            })
+        </script>
+
+        ```
+
 
 ### HTML自定义标签
 - 创建
@@ -111,14 +261,32 @@
     })
     ```
 
-### Diolag 标签
+### Dialog 标签
 - show()
 - showModal()
     ```javascript
     // 当该方法用于显示对话窗口时，用户不可以与页面的其他元素进行交互
     document.getElementById("myDialog").showModal();
     ```
+- form形式dialog
 
+    form 的method属性设置为dialog，点击其中的按钮会隐藏对话框,可以按钮绑定的点击函数中```return false``` 来组织对话框隐藏；```dialog.returnValue===button.value```
+    ```html
+    <dialog id="newFuncViewDialog">
+        <form method="dialog">
+        <p>
+            <label>Add new function to DolphinDB Function View:</label>
+            <div id="cm_container" class="panel panel-default" style="margin-bottom: 10px;min-height:150px;max-height:255px; overflow-y:auto">
+                <textarea id="newFuncView" cols="5" style="width:100%;"></textarea>
+            </div>
+        </p>
+        <menu  class="text-center" style="padding-inline-start: 0px;">
+            <button class="btn btn-sm  btn-info" id="confirmFuncViewBtn" value="default" >Confirm</button>
+            <button class="btn btn-sm btn-light" value="cancel">Cancel</button>
+        </menu>
+        </form>
+    </dialog>
+    ```
 <br>
 <br>
 
@@ -268,3 +436,17 @@ var btnUpdateFunctionView = function (funcName) {
     });
 }
 ```
+
+# 编码
+
+### encodeURIComponent和encodeURI
+
+encodeURIComponent()和enCodeURI()方法都可以对URI进行编码，以便发送给浏览器，因为有效URI不能包含某些字符，例如空格等。通过这两个方法对URI进行编码，它们用特殊的UTF-8编码替换所有无效的字符，从而能够让浏览器识别
+
+encodeURI()主要用于整个URI,它不会对本身属于URI的特殊字符进行编码例如：
+
+```ASCII字母、数字、~!@#$&*()=:/,;?+'```
+
+encodeURIComponent()可用于编码URI中的参数，encodeURIComponent方法不会对下列字符编码：
+
+```ASCII字母、数字、~!*()'```

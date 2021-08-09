@@ -107,3 +107,82 @@ console.log(others)//{apple: 'red apple',grape: 'purple grape'}
     m.delete(o) // true
     m.has(o) // false
     ```
+
+## iterator
+
+- 概念：
+
+    迭代器是一种接口，为各种不同的数据结构提供统一的访问机制。任何数据结构只要部署Iterator接口，就可以完成遍历操作。
+    数组上的iterator: ```Array.prototype[Symbol.iterator]```
+
+- 工作原理
+
+    1. 创建一个指针对象，指向当前数据结构的起始位置
+
+    2. 第一次调用对象的next方法，指针自动指向数据结构的第一个成员
+
+    3. 接下来不断调用next方法，直到指向最后一个成员
+
+    4. 每次调用next方法返回一个包含value和done属性的对象
+
+- 自定义遍历对象 ```for (var item of obj)```
+
+
+## Generator函数
+
+- 概念：
+
+    ```Generator``` 函数是一个状态机，封装了多个内部状态。```Generator``` 函数返回的是遍历器（iterator）对象，只有调用next方法才会遍历下一个内部状态，所以```Generator```是一种可以暂停执行的函数。```yield```表达式就是暂停标志。
+
+- 运行原理：
+
+    遍历器对象的next方法的运行逻辑如下:
+
+    1. 遇到```yield```表达式，就暂停执行后面的操作，并将紧跟在```yield```后面的那个表达式的值，作为返回的对象的value属性值。
+
+    2. 下一次调用next方法时，再继续往下执行，直到遇到下一个```yield```表达式。
+
+    3. 如果没有再遇到新的```yield```表达式，就一直运行到函数结束，直到return语句为止，并将return语句后面的表达式的值，作为返回的对象的value属性值。
+
+    4. 如果该函数没有return语句，则返回的对象的value属性值为undefined。
+
+- next方法的参数：
+
+    ```yield```表达式本身没有返回值，或者说总是返回undefined。next方法可以带一个参数，该参数就会被当作上一个yield表达式的返回值。
+
+
+
+## Promise
+ - 概念：
+
+    Promise 是ES6引入的一种新的异步编程解决方案，有了Promise对象，就可以将异步操作以同步操作的流程表达出来，避免了层层嵌套的回调函数。
+
+- 用法：
+
+    Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject，他们是两个函数，用来改变Promise对象的状态。Promise实例生成以后，可以用then方法分别指定resolved状态和rejected状态的回调函数。
+    ```javascript
+    const p = new Promise((resove, reject)=>{
+        setTimeout(()=>{
+            // 改变状态为“resolved”
+            resove('data')
+            // 改变状态为“rejected”
+            // reject('some error')
+        })
+    })
+
+    p.then(function(value){
+        // success
+    },function(reason){
+        // failure
+    })
+    
+    ```
+- Promise.prototype.then()
+
+    为 Promise 实例添加状态改变时的回调函数。返回一个新的Promise实例
+    
+
+
+- Promise.resolve() and Promise.reject()    
+
+    将现有对象转换为Promise对象
