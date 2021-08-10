@@ -4,9 +4,36 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>indexHtml</title>
+    <style>
+        #traffic {
+            display: flex;
+        }
+        .light{
+            margin: 10px;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            background-color: gray;
+        }
+    </style>
 </head>
 <body>
-    <script src="./js/iterator.js"></script>
+    <div id="traffic">
+        <div class="light" id="red"></div>
+        <div class="light" id="yellow"></div>
+        <div class="light" id="green"></div>
+    </div>
+
+
+    <!-- <button>点我发送Ajax请求</button> -->
+    <!-- <script src="./js/templateString.js"></script> -->
+    <!-- <script src="./js/debounce.js"></script>
+    </script> -->
+    <!-- <script src="./js/vuebibind.js"></script> -->
+    <!-- <script src="js/generator.js"></script> -->
+    <!-- <script src="js/promise.js"></script> -->
+    <!-- <script src="./js/ajax_promise.js"></script> -->
+    <script src="./js/trafficLight.js"></script>
 </body>
 </html>
